@@ -1,0 +1,1796 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JS: Zero to Junior — Интенсив</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Unbounded:wght@400;700;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --surface2: #18181f;
+    --border: #2a2a3a;
+    --accent: #00e5a0;
+    --accent2: #7c3aed;
+    --accent3: #f59e0b;
+    --error: #ef4444;
+    --text: #e2e8f0;
+    --text-dim: #64748b;
+    --text-muted: #334155;
+    --code-bg: #0d0d14;
+    --glow: 0 0 30px rgba(0,229,160,0.15);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* GRID BACKGROUND */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: 
+      linear-gradient(rgba(0,229,160,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,229,160,0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* HEADER */
+  header {
+    position: relative;
+    z-index: 10;
+    padding: 0 2rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+    background: rgba(10,10,15,0.9);
+    backdrop-filter: blur(12px);
+  }
+
+  .logo {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 1rem;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    color: var(--accent);
+    text-shadow: 0 0 20px rgba(0,229,160,0.5);
+  }
+
+  .logo span { color: var(--text-dim); font-weight: 400; }
+
+  .progress-bar-wrap {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .progress-track {
+    width: 160px;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius: 2px;
+    transition: width 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    width: 0%;
+  }
+
+  /* LAYOUT */
+  .layout {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    min-height: calc(100vh - 64px);
+  }
+
+  /* SIDEBAR */
+  .sidebar {
+    border-right: 1px solid var(--border);
+    background: var(--surface);
+    overflow-y: auto;
+    padding: 1.5rem 0;
+  }
+
+  .sidebar-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    padding: 0 1.25rem 0.75rem;
+  }
+
+  .module-group { margin-bottom: 0.5rem; }
+
+  .module-header {
+    padding: 0.5rem 1.25rem;
+    font-size: 0.7rem;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .module-header::before {
+    content: '';
+    display: inline-block;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 8px var(--accent);
+  }
+
+  .lesson-item {
+    padding: 0.6rem 1.25rem 0.6rem 2.5rem;
+    cursor: pointer;
+    font-size: 0.82rem;
+    color: var(--text-dim);
+    transition: all 0.15s;
+    border-left: 2px solid transparent;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    position: relative;
+  }
+
+  .lesson-item:hover { color: var(--text); background: rgba(255,255,255,0.03); }
+
+  .lesson-item.active {
+    color: var(--accent);
+    border-left-color: var(--accent);
+    background: rgba(0,229,160,0.05);
+  }
+
+  .lesson-item.done { color: var(--text-dim); }
+  .lesson-item.done::after {
+    content: '✓';
+    position: absolute;
+    right: 1.25rem;
+    font-size: 0.7rem;
+    color: var(--accent);
+  }
+
+  .lesson-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    padding: 2px 6px;
+    border-radius: 3px;
+    background: var(--surface2);
+    color: var(--text-muted);
+    flex-shrink: 0;
+  }
+
+  .lesson-badge.task { background: rgba(245,158,11,0.15); color: var(--accent3); }
+
+  /* MAIN CONTENT */
+  .main {
+    display: grid;
+    grid-template-rows: 1fr;
+    overflow: hidden;
+  }
+
+  /* LESSON VIEW */
+  .lesson-view {
+    overflow-y: auto;
+    padding: 2.5rem;
+    max-width: 860px;
+  }
+
+  .lesson-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent2);
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .lesson-eyebrow::after {
+    content: '';
+    flex: 1;
+    max-width: 60px;
+    height: 1px;
+    background: var(--accent2);
+    opacity: 0.4;
+  }
+
+  h1.lesson-title {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 1.8rem;
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    line-height: 1.2;
+    margin-bottom: 1rem;
+    background: linear-gradient(135deg, var(--text) 0%, var(--accent) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .lesson-meta {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .lesson-meta span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .section {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .section::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 3px; height: 100%;
+    border-radius: 2px;
+  }
+
+  .section.theory::before { background: var(--accent2); }
+  .section.deepdive::before { background: var(--accent3); }
+  .section.task::before { background: var(--accent); }
+  .section.checklist::before { background: var(--error); }
+
+  .section-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .section.theory .section-label { color: var(--accent2); }
+  .section.deepdive .section-label { color: var(--accent3); }
+  .section.task .section-label { color: var(--accent); }
+  .section.checklist .section-label { color: var(--error); }
+
+  .section h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    color: var(--text);
+  }
+
+  .section p, .section li {
+    font-size: 0.88rem;
+    line-height: 1.7;
+    color: #94a3b8;
+  }
+
+  .section ul, .section ol {
+    padding-left: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .section li::marker { color: var(--accent); }
+
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82em;
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    padding: 2px 6px;
+    border-radius: 3px;
+    color: var(--accent);
+  }
+
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1rem 1.25rem;
+    overflow-x: auto;
+    margin: 0.75rem 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    line-height: 1.6;
+    color: #a5b4fc;
+  }
+
+  pre .kw { color: #f472b6; }
+  pre .fn { color: #60a5fa; }
+  pre .str { color: #86efac; }
+  pre .cm { color: #475569; font-style: italic; }
+  pre .num { color: var(--accent3); }
+
+  .checklist-item {
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-start;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .checklist-item:last-child { border-bottom: none; }
+
+  .check-icon {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: rgba(239,68,68,0.1);
+    border: 1px solid var(--error);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 2px;
+    font-size: 0.65rem;
+    color: var(--error);
+  }
+
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0.7rem 1.5rem;
+    background: var(--accent);
+    color: #0a0a0f;
+    border: none;
+    border-radius: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+    margin-top: 1rem;
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 20px rgba(0,229,160,0.4);
+  }
+
+  /* SANDBOX OVERLAY */
+  .sandbox-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: none;
+    background: rgba(0,0,0,0.8);
+    backdrop-filter: blur(8px);
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+
+  .sandbox-overlay.open { display: flex; }
+
+  .sandbox-panel {
+    width: 100%;
+    max-width: 1100px;
+    height: 90vh;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    display: grid;
+    grid-template-rows: auto 1fr;
+    overflow: hidden;
+    box-shadow: 0 0 60px rgba(0,229,160,0.1);
+  }
+
+  .sandbox-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.875rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+    gap: 1rem;
+  }
+
+  .sandbox-task-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .task-badge {
+    font-size: 0.65rem;
+    padding: 3px 8px;
+    background: rgba(0,229,160,0.1);
+    color: var(--accent);
+    border: 1px solid rgba(0,229,160,0.3);
+    border-radius: 4px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .sandbox-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  .btn-run {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 0.5rem 1rem;
+    background: var(--surface);
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-weight: 600;
+  }
+
+  .btn-run:hover { border-color: var(--text-muted); color: var(--text); }
+
+  .btn-check {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 0.5rem 1.125rem;
+    background: var(--accent);
+    color: #0a0a0f;
+    border: none;
+    border-radius: 5px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .btn-check:hover { box-shadow: 0 0 20px rgba(0,229,160,0.35); }
+
+  .btn-close {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    width: 32px; height: 32px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+  }
+
+  .btn-close:hover { border-color: var(--error); color: var(--error); }
+
+  .sandbox-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    overflow: hidden;
+  }
+
+  /* LEFT PANEL */
+  .editor-side {
+    display: grid;
+    grid-template-rows: auto 1fr;
+    border-right: 1px solid var(--border);
+    overflow: hidden;
+  }
+
+  .task-desc {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--code-bg);
+    font-size: 0.82rem;
+    line-height: 1.6;
+    color: #94a3b8;
+    overflow-y: auto;
+    max-height: 160px;
+  }
+
+  .task-desc strong { color: var(--text); }
+  .task-desc code { font-size: 0.8em; }
+
+  .editor-wrap {
+    position: relative;
+    overflow: hidden;
+    background: var(--code-bg);
+  }
+
+  .line-numbers {
+    position: absolute;
+    top: 0; left: 0;
+    width: 42px;
+    height: 100%;
+    background: var(--code-bg);
+    border-right: 1px solid var(--border);
+    padding: 1rem 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    line-height: 1.6rem;
+    color: var(--text-muted);
+    text-align: right;
+    padding-right: 10px;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  #code-editor {
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    border: none;
+    outline: none;
+    resize: none;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    line-height: 1.6rem;
+    color: #c4b5fd;
+    padding: 1rem 1rem 1rem 54px;
+    tab-size: 2;
+    caret-color: var(--accent);
+    position: absolute;
+    inset: 0;
+  }
+
+  #code-editor::selection { background: rgba(124,58,237,0.3); }
+
+  /* RIGHT PANEL */
+  .output-side {
+    display: grid;
+    grid-template-rows: 1fr auto;
+    overflow: hidden;
+    background: var(--code-bg);
+  }
+
+  .console-area {
+    padding: 1rem 1.25rem;
+    overflow-y: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    line-height: 1.7;
+  }
+
+  .console-empty {
+    color: var(--text-muted);
+    font-style: italic;
+  }
+
+  .console-line {
+    padding: 2px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .console-line.log { color: var(--text-dim); }
+  .console-line.error { color: var(--error); }
+  .console-line.success { color: var(--accent); }
+  .console-line.info { color: #60a5fa; }
+
+  .console-prefix {
+    color: var(--text-muted);
+    flex-shrink: 0;
+  }
+
+  .test-results {
+    padding: 1rem 1.25rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    max-height: 220px;
+    overflow-y: auto;
+  }
+
+  .test-results-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 0.25rem;
+  }
+
+  .test-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0.4rem 0.75rem;
+    background: var(--surface);
+    border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    transition: all 0.3s;
+  }
+
+  .test-row.pass { border-left: 2px solid var(--accent); color: var(--accent); }
+  .test-row.fail { border-left: 2px solid var(--error); color: #fca5a5; }
+  .test-row.pending { border-left: 2px solid var(--text-muted); color: var(--text-muted); }
+
+  .test-icon { flex-shrink: 0; }
+
+  /* SUCCESS OVERLAY */
+  .success-banner {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.85);
+    z-index: 50;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+    border-radius: 12px;
+  }
+
+  .success-banner.show {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .success-glow {
+    width: 120px; height: 120px;
+    border-radius: 50%;
+    background: rgba(0,229,160,0.1);
+    border: 2px solid var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    margin-bottom: 1.5rem;
+    animation: pulse-glow 2s ease-in-out infinite;
+    box-shadow: 0 0 40px rgba(0,229,160,0.3), 0 0 80px rgba(0,229,160,0.1);
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% { box-shadow: 0 0 40px rgba(0,229,160,0.3), 0 0 80px rgba(0,229,160,0.1); }
+    50% { box-shadow: 0 0 60px rgba(0,229,160,0.5), 0 0 120px rgba(0,229,160,0.2); }
+  }
+
+  .success-text {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: var(--accent);
+    letter-spacing: -0.02em;
+    margin-bottom: 0.5rem;
+  }
+
+  .success-sub {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    color: var(--text-dim);
+    margin-bottom: 1.5rem;
+  }
+
+  /* CONFETTI */
+  .confetti-container {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+    border-radius: 12px;
+  }
+
+  .confetto {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    animation: confetti-fall 2.5s ease-in forwards;
+  }
+
+  @keyframes confetti-fall {
+    0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(700px) rotate(720deg); opacity: 0; }
+  }
+
+  /* NAV TABS */
+  .nav-tabs {
+    display: flex;
+    gap: 0;
+    padding: 0 2.5rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    overflow-x: auto;
+  }
+
+  .nav-tab {
+    padding: 0.875rem 1.25rem;
+    font-size: 0.8rem;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text-muted);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.15s;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    letter-spacing: 0.05em;
+  }
+
+  .nav-tab:hover { color: var(--text-dim); }
+  .nav-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  .nav-tab .tab-num {
+    font-size: 0.65rem;
+    background: var(--surface2);
+    padding: 2px 6px;
+    border-radius: 3px;
+  }
+
+  /* NOTIFICATION */
+  .notification {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    z-index: 200;
+    padding: 0.875rem 1.25rem;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transform: translateY(20px);
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    pointer-events: none;
+    max-width: 320px;
+  }
+
+  .notification.show {
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  .notification.ok { border-color: rgba(0,229,160,0.4); color: var(--accent); }
+  .notification.err { border-color: rgba(239,68,68,0.4); color: var(--error); }
+
+  /* RESPONSIVE */
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+    .sandbox-body { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; }
+    h1.lesson-title { font-size: 1.3rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">JS:ZERO<span>→</span>JUNIOR</div>
+  <div class="progress-bar-wrap">
+    <span id="progress-label">0 / 7 модулей</span>
+    <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+  </div>
+</header>
+
+<div class="layout">
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-title">// Программа курса</div>
+
+    <div class="module-group">
+      <div class="module-header">Модуль 1 · Фундамент</div>
+      <div class="lesson-item active" data-lesson="0">
+        <span>Движок и синтаксис ES6+</span>
+        <span class="lesson-badge">theory</span>
+      </div>
+      <div class="lesson-item" data-lesson="1">
+        <span>Деструктуризация & Spread</span>
+        <span class="lesson-badge task">task</span>
+      </div>
+    </div>
+
+    <div class="module-group">
+      <div class="module-header">Модуль 2 · DOM & Events</div>
+      <div class="lesson-item" data-lesson="2">
+        <span>Event Delegation</span>
+        <span class="lesson-badge task">task</span>
+      </div>
+      <div class="lesson-item" data-lesson="3">
+        <span>Формы и валидация</span>
+        <span class="lesson-badge task">task</span>
+      </div>
+    </div>
+
+    <div class="module-group">
+      <div class="module-header">Модуль 3 · Async</div>
+      <div class="lesson-item" data-lesson="4">
+        <span>Promises & Event Loop</span>
+        <span class="lesson-badge">theory</span>
+      </div>
+      <div class="lesson-item" data-lesson="5">
+        <span>Async/Await & Fetch API</span>
+        <span class="lesson-badge task">task</span>
+      </div>
+    </div>
+
+    <div class="module-group">
+      <div class="module-header">Модуль 4 · Продакшн</div>
+      <div class="lesson-item" data-lesson="6">
+        <span>Modules & Error Handling</span>
+        <span class="lesson-badge task">task</span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="nav-tabs" id="nav-tabs"></div>
+    <div class="lesson-view" id="lesson-view"></div>
+  </div>
+</div>
+
+<!-- SANDBOX OVERLAY -->
+<div class="sandbox-overlay" id="sandbox-overlay">
+  <div class="sandbox-panel">
+    <div class="sandbox-topbar">
+      <div class="sandbox-task-title">
+        <span class="task-badge">Sandbox</span>
+        <span id="sandbox-title">Задача</span>
+      </div>
+      <div class="sandbox-actions">
+        <button class="btn-run" id="btn-reset">↺ Reset</button>
+        <button class="btn-run" id="btn-run">▶ Run</button>
+        <button class="btn-check" id="btn-check">✓ Проверить</button>
+        <button class="btn-close" id="btn-close">✕</button>
+      </div>
+    </div>
+
+    <div class="sandbox-body">
+      <div class="editor-side">
+        <div class="task-desc" id="task-desc"></div>
+        <div class="editor-wrap">
+          <div class="line-numbers" id="line-numbers">1</div>
+          <textarea id="code-editor" spellcheck="false" autocorrect="off" autocapitalize="off"></textarea>
+        </div>
+      </div>
+
+      <div class="output-side">
+        <div class="console-area" id="console-area">
+          <div class="console-empty">// Консоль пустая. Нажми ▶ Run...</div>
+        </div>
+        <div class="test-results" id="test-results">
+          <div class="test-results-title">// Тесты</div>
+          <div id="tests-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SUCCESS BANNER -->
+    <div class="success-banner" id="success-banner">
+      <div class="confetti-container" id="confetti-container"></div>
+      <div class="success-glow">✓</div>
+      <div class="success-text">Все тесты пройдены!</div>
+      <div class="success-sub" id="success-sub">Отличная работа.</div>
+      <button class="btn-primary" id="btn-next-task">Следующий модуль →</button>
+    </div>
+  </div>
+</div>
+
+<!-- NOTIFICATION -->
+<div class="notification" id="notification"></div>
+
+<script>
+// =====================================================
+// COURSE DATA
+// =====================================================
+const LESSONS = [
+  {
+    id: 0,
+    module: "Модуль 1",
+    title: "Движок JS и современный синтаксис",
+    time: "45 мин",
+    difficulty: "Основы",
+    sections: [
+      {
+        type: "theory",
+        label: "Key Theory",
+        heading: "Критически важные концепции",
+        content: `<ul>
+          <li><strong>Call Stack</strong> — однопоточный стек вызовов. Синхронный код выполняется строго последовательно.</li>
+          <li><strong>Heap</strong> — память для объектов. Ссылочные типы (объекты, массивы) хранятся здесь.</li>
+          <li><strong>let / const</strong> — блочная область видимости. <code>const</code> — дефолт, <code>let</code> только если переменная переназначается.</li>
+          <li><strong>Arrow functions</strong> — лексический <code>this</code>, нет своего <code>arguments</code>.</li>
+          <li><strong>Template literals</strong> — <code>\`Hello, \${name}!\`</code> вместо конкатенации.</li>
+          <li><strong>Spread / Rest</strong> — <code>...args</code> в параметрах и при копировании.</li>
+        </ul>`
+      },
+      {
+        type: "deepdive",
+        label: "Technical Deep Dive",
+        heading: "Замыкания (Closures) — вопрос на каждом собеседовании",
+        content: `<p>Замыкание — это функция, которая <strong>«запомнила»</strong> лексическое окружение места, где была создана.</p>
+        <pre><span class="kw">const</span> <span class="fn">makeCounter</span> = () => {
+  <span class="kw">let</span> count = <span class="num">0</span>; <span class="cm">// приватная переменная</span>
+  <span class="kw">return</span> {
+    inc: () => ++count,
+    get: () => count,
+  };
+};
+
+<span class="kw">const</span> counter = <span class="fn">makeCounter</span>();
+counter.<span class="fn">inc</span>(); counter.<span class="fn">inc</span>();
+console.<span class="fn">log</span>(counter.<span class="fn">get</span>()); <span class="cm">// 2</span></pre>
+        <p>Почему это важно: <code>count</code> недоступен снаружи — это основа паттерна <strong>модуль</strong> и приватного состояния.</p>`
+      },
+      {
+        type: "task",
+        label: "Real-world Task",
+        heading: "Тикет: Утилита форматирования валюты",
+        content: `<p>В вашем проекте нужна функция <code>formatPrice(amount, currency)</code>. Откройте песочницу и реализуйте её.</p>
+        <p style="margin-top:0.5rem"><strong>Требования:</strong> принимает число и строку валюты, возвращает отформатированную строку вида <code>"1 500 ₽"</code> или <code>"$1,500"</code>.</p>`,
+        hasSandbox: true,
+        sandboxId: 0
+      },
+      {
+        type: "checklist",
+        label: "Code Review Checklist",
+        heading: "Признаки кода новичка — проверь себя",
+        content: `
+          <div class="checklist-item"><div class="check-icon">!</div><div><strong>var вместо let/const.</strong> Любой <code>var</code> — красный флаг на ревью.</div></div>
+          <div class="checklist-item"><div class="check-icon">!</div><div><strong>Мутация объекта-параметра.</strong> Всегда возвращай новый объект: <code>return {...obj, key: val}</code>.</div></div>
+          <div class="checklist-item"><div class="check-icon">!</div><div><strong>Магические числа.</strong> <code>if (status === 2)</code> → <code>const ACTIVE = 2</code>.</div></div>
+          <div class="checklist-item"><div class="check-icon">!</div><div><strong>Вложенные тернарники.</strong> Если не читается в одну строку — используй if/else.</div></div>`
+      }
+    ]
+  },
+  {
+    id: 1,
+    module: "Модуль 1",
+    title: "Деструктуризация, Spread & Rest",
+    time: "30 мин",
+    difficulty: "Основы",
+    sections: [
+      {
+        type: "theory",
+        label: "Key Theory",
+        heading: "Современный синтаксис работы с данными",
+        content: `<ul>
+          <li><strong>Деструктуризация объекта:</strong> <code>const { name, age = 0 } = user</code> — дефолтные значения включены.</li>
+          <li><strong>Деструктуризация массива:</strong> <code>const [first, , third] = arr</code> — пропуск элементов через запятую.</li>
+          <li><strong>Переименование:</strong> <code>const { id: userId } = response</code></li>
+          <li><strong>Spread в объектах:</strong> <code>const updated = { ...user, role: 'admin' }</code> — иммутабельное обновление.</li>
+          <li><strong>Rest-параметры:</strong> <code>const sum = (...nums) => nums.reduce((a,b) => a+b, 0)</code></li>
+        </ul>`
+      },
+      {
+        type: "deepdive",
+        label: "Technical Deep Dive",
+        heading: "Глубокое vs поверхностное копирование",
+        content: `<p>Spread создаёт только <strong>поверхностную копию</strong>. Вложенные объекты всё ещё передаются по ссылке:</p>
+        <pre><span class="kw">const</span> user = { name: <span class="str">'Alice'</span>, prefs: { theme: <span class="str">'dark'</span> } };
+<span class="kw">const</span> copy = { ...user };
+
+copy.prefs.theme = <span class="str">'light'</span>;
+console.<span class="fn">log</span>(user.prefs.theme); <span class="cm">// 'light' — мутация!</span>
+
+<span class="cm">// Решение для 1 уровня вложенности:</span>
+<span class="kw">const</span> safeCopy = { ...user, prefs: { ...user.prefs } };</pre>`
+      },
+      {
+        type: "task",
+        label: "Real-world Task",
+        heading: "Тикет: Нормализация ответа API",
+        content: `<p>Бекенд возвращает объект пользователя в «грязном» формате. Напишите функцию <code>normalizeUser(raw)</code>, которая трансформирует его в чистую структуру.</p>`,
+        hasSandbox: true,
+        sandboxId: 1
+      },
+      {
+        type: "checklist",
+        label: "Code Review Checklist",
+        heading: "На что смотреть",
+        content: `
+          <div class="checklist-item"><div class="check-icon">!</div><div>Нет деструктуризации — код читается хуже: <code>user.name</code>, <code>user.age</code> в каждой строке.</div></div>
+          <div class="checklist-item"><div class="check-icon">!</div><div>Мутация оригинального объекта вместо создания нового через spread.</div></div>
+          <div class="checklist-item"><div class="check-icon">!</div><div>Отсутствие дефолтных значений при деструктуризации — потенциальный <code>undefined</code>.</div></div>`
+      }
+    ]
+  },
+  {
+    id: 2,
+    module: "Модуль 2",
+    title: "DOM & Event Delegation",
+    time: "50 мин",
+    difficulty: "Средний",
+    sections: [
+      {
+        type: "theory",
+        label: "Key Theory",
+        heading: "Работа с DOM без фреймворка",
+        content: `<ul>
+          <li><strong>querySelector / querySelectorAll</strong> — единственные методы поиска элементов в 2025.</li>
+          <li><strong>Event Delegation:</strong> вместо 100 listeners на элементах — 1 на родителе. Используй <code>event.target.closest()</code>.</li>
+          <li><strong>addEventListener третий аргумент:</strong> <code>{ once: true, passive: true }</code>.</li>
+          <li><strong>dataset:</strong> <code>el.dataset.id</code> вместо кастомных атрибутов.</li>
+          <li><strong>classList API:</strong> <code>toggle, add, remove, contains</code> — никаких <code>className +=</code>.</li>
+        </ul>`
+      },
+      {
+        type: "deepdive",
+        label: "Technical Deep Dive",
+        heading: "Event Bubbling & Capturing — путь события",
+        content: `<p>Событие проходит 3 фазы: <strong>Capturing → Target → Bubbling</strong>. На практике всегда bubbling (по умолчанию).</p>
+        <pre><span class="cm">// Паттерн Event Delegation</span>
+document.<span class="fn">querySelector</span>(<span class="str">'.list'</span>).<span class="fn">addEventListener</span>(<span class="str">'click'</span>, (e) => {
+  <span class="kw">const</span> item = e.target.<span class="fn">closest</span>(<span class="str">'[data-id]'</span>);
+  <span class="kw">if</span> (!item) <span class="kw">return</span>; <span class="cm">// клик мимо</span>
+  
+  <span class="fn">handleItemClick</span>(item.dataset.id);
+});</pre>
+        <p><code>stopPropagation()</code> — используй осторожно, ломает делегирование родителя.</p>`
+      },
+      {
+        type: "task",
+        label: "Real-world Task",
+        heading: "Тикет: Динамический список задач (Todo)",
+        content: `<p>Реализуй функцию <code>setupTaskList(tasks)</code>, которая рендерит список и обрабатывает клики через делегирование.</p>`,
+        hasSandbox: true,
+        sandboxId: 2
+      },
+      {
+        type: "checklist",
+        label: "Code Review Checklist",
+        heading: "DOM — типичные ошибки",
+        content: `
+          <div class="checklist-item"><div class="check-icon">!</div><div>Listener внутри цикла — утечка памяти. Используй делегирование.</div></div>
+          <div class="checklist-item"><div class="check-icon">!</div><div>innerHTML с данными от пользователя — XSS-уязвимость. Используй <code>textContent</code>.</div></div>
+          <div class="checklist-item"><div class="check-icon">!</div><div>Нет проверки <code>event.target.closest()</code> — обработчик сработает на дочерних элементах.</div></div>`
+      }
+    ]
+  },
+  {
+    id: 3,
+    module: "Модуль 2",
+    title: "Формы и валидация",
+    time: "40 мин",
+    difficulty: "Средний",
+    sections: [
+      {
+        type: "theory",
+        label: "Key Theory",
+        heading: "Работа с формами в продакшне",
+        content: `<ul>
+          <li><strong>FormData API:</strong> <code>new FormData(formEl)</code> — читает все поля формы автоматически.</li>
+          <li><strong>preventDefault:</strong> обязательно для форм, чтобы предотвратить перезагрузку страницы.</li>
+          <li><strong>Constraint Validation API:</strong> <code>input.validity.valid</code>, <code>setCustomValidity()</code>.</li>
+          <li><strong>Debounce при валидации:</strong> не валидируй на каждый keyup — задержка 300ms.</li>
+          <li><strong>Регулярные выражения:</strong> email, телефон, карта — знать наизусть 3-4 паттерна.</li>
+        </ul>`
+      },
+      {
+        type: "deepdive",
+        label: "Technical Deep Dive",
+        heading: "Debounce — реализация с нуля",
+        content: `<p>Debounce откладывает вызов функции до тех пор, пока не пройдёт N мс с последнего вызова:</p>
+        <pre><span class="kw">const</span> <span class="fn">debounce</span> = (fn, delay) => {
+  <span class="kw">let</span> timer;
+  <span class="kw">return</span> (...args) => {
+    <span class="fn">clearTimeout</span>(timer);
+    timer = <span class="fn">setTimeout</span>(() => fn(...args), delay);
+  };
+};
+
+<span class="cm">// Использование:</span>
+<span class="kw">const</span> validate = <span class="fn">debounce</span>(<span class="fn">checkEmail</span>, <span class="num">300</span>);
+input.<span class="fn">addEventListener</span>(<span class="str">'input'</span>, validate);</pre>`
+      },
+      {
+        type: "task",
+        label: "Real-world Task",
+        heading: "Тикет: Валидатор формы оплаты",
+        content: `<p>Напиши функцию <code>validatePayment({ card, expiry, cvv })</code>, которая проверяет данные карты и возвращает объект с ошибками.</p>`,
+        hasSandbox: true,
+        sandboxId: 3
+      },
+      {
+        type: "checklist",
+        label: "Code Review Checklist",
+        heading: "Валидация — красные флаги",
+        content: `
+          <div class="checklist-item"><div class="check-icon">!</div><div>Валидация только на клиенте без серверной проверки — никогда не делать.</div></div>
+          <div class="checklist-item"><div class="check-icon">!</div><div>Сообщения об ошибках без указания, что именно неверно.</div></div>
+          <div class="checklist-item"><div class="check-icon">!</div><div>Trim() не вызван — пробелы в начале/конце ломают валидацию email.</div></div>`
+      }
+    ]
+  },
+  {
+    id: 4,
+    module: "Модуль 3",
+    title: "Promises & Event Loop",
+    time: "60 мин",
+    difficulty: "Сложный",
+    sections: [
+      {
+        type: "theory",
+        label: "Key Theory",
+        heading: "Асинхронность — как это работает",
+        content: `<ul>
+          <li><strong>Event Loop:</strong> Call Stack → Web APIs → Callback Queue → Microtask Queue. Микрозадачи (Promises) всегда раньше macrotasks (setTimeout).</li>
+          <li><strong>Promise states:</strong> pending → fulfilled | rejected. Состояние неизменно после resolve/reject.</li>
+          <li><strong>Promise.all:</strong> ждёт все, падает при первой ошибке.</li>
+          <li><strong>Promise.allSettled:</strong> ждёт все, возвращает статус каждого — для независимых запросов.</li>
+          <li><strong>Promise chaining:</strong> каждый <code>.then()</code> возвращает новый Promise.</li>
+        </ul>`
+      },
+      {
+        type: "deepdive",
+        label: "Technical Deep Dive",
+        heading: "Порядок выполнения — классический вопрос на собеседовании",
+        content: `<p>Что выведет этот код? Объясни порядок:</p>
+        <pre>console.<span class="fn">log</span>(<span class="str">'1'</span>);
+
+<span class="fn">setTimeout</span>(() => console.<span class="fn">log</span>(<span class="str">'2'</span>), <span class="num">0</span>);
+
+Promise.<span class="fn">resolve</span>().<span class="fn">then</span>(() => console.<span class="fn">log</span>(<span class="str">'3'</span>));
+
+console.<span class="fn">log</span>(<span class="str">'4'</span>);
+
+<span class="cm">// Вывод: 1, 4, 3, 2
+// Sync → Microtasks → Macrotasks</span></pre>
+        <p><strong>Правило:</strong> Promise callbacks → Microtask Queue (приоритет). setTimeout → Macrotask Queue (после).</p>`
+      },
+      {
+        type: "task",
+        label: "Real-world Task",
+        heading: "Тикет: Параллельная загрузка данных",
+        content: `<p>Реализуй функцию <code>loadDashboard(userId)</code>, которая загружает данные пользователя и его заказы <strong>параллельно</strong> через <code>Promise.all</code>.</p>`,
+        hasSandbox: true,
+        sandboxId: 4
+      },
+      {
+        type: "checklist",
+        label: "Code Review Checklist",
+        heading: "Async — типичные ошибки",
+        content: `
+          <div class="checklist-item"><div class="check-icon">!</div><div>Promise Pyramid of Doom — вложенные .then() вместо цепочки.</div></div>
+          <div class="checklist-item"><div class="check-icon">!</div><div>Нет .catch() или try/catch — необработанные rejected Promises.</div></div>
+          <div class="checklist-item"><div class="check-icon">!</div><div>await в цикле for — последовательно вместо параллельно. Используй Promise.all.</div></div>`
+      }
+    ]
+  },
+  {
+    id: 5,
+    module: "Модуль 3",
+    title: "Async/Await & Fetch API",
+    time: "50 мин",
+    difficulty: "Средний",
+    sections: [
+      {
+        type: "theory",
+        label: "Key Theory",
+        heading: "Работа с сетью в современном JS",
+        content: `<ul>
+          <li><strong>async/await</strong> — синтаксический сахар над Promises. Функция с <code>async</code> всегда возвращает Promise.</li>
+          <li><strong>fetch() не бросает ошибку</strong> при 404/500. Проверяй <code>response.ok</code> вручную.</li>
+          <li><strong>AbortController:</strong> отмена запроса при размонтировании компонента.</li>
+          <li><strong>HTTP методы:</strong> GET, POST, PUT, PATCH, DELETE — знать разницу.</li>
+          <li><strong>Headers & Content-Type:</strong> <code>'application/json'</code> обязателен для POST с JSON.</li>
+        </ul>`
+      },
+      {
+        type: "deepdive",
+        label: "Technical Deep Dive",
+        heading: "Обёртка над fetch — production-паттерн",
+        content: `<pre><span class="kw">const</span> <span class="fn">api</span> = <span class="kw">async</span> (url, options = {}) => {
+  <span class="kw">const</span> res = <span class="kw">await</span> <span class="fn">fetch</span>(url, {
+    headers: { <span class="str">'Content-Type'</span>: <span class="str">'application/json'</span> },
+    ...options,
+  });
+  
+  <span class="kw">if</span> (!res.ok) {
+    <span class="kw">const</span> err = <span class="kw">await</span> res.<span class="fn">json</span>().<span class="fn">catch</span>(() => ({}));
+    <span class="kw">throw new</span> Error(err.message ?? \`HTTP \${res.status}\`);
+  }
+  
+  <span class="kw">return</span> res.<span class="fn">json</span>();
+};
+
+<span class="cm">// Использование:</span>
+<span class="kw">const</span> user = <span class="kw">await</span> <span class="fn">api</span>(<span class="str">'/api/users/1'</span>);</pre>`
+      },
+      {
+        type: "task",
+        label: "Real-world Task",
+        heading: "Тикет: Функция обёртка над fetch",
+        content: `<p>Напиши async функцию <code>fetchUser(id)</code>, которая делает запрос, обрабатывает ошибки и возвращает нормализованный объект пользователя.</p>`,
+        hasSandbox: true,
+        sandboxId: 5
+      },
+      {
+        type: "checklist",
+        label: "Code Review Checklist",
+        heading: "Fetch — на что смотреть",
+        content: `
+          <div class="checklist-item"><div class="check-icon">!</div><div>Нет проверки <code>response.ok</code> — 4xx/5xx ошибки проглатываются.</div></div>
+          <div class="checklist-item"><div class="check-icon">!</div><div>Токен авторизации в URL параметрах — должен быть в заголовках.</div></div>
+          <div class="checklist-item"><div class="check-icon">!</div><div>Нет AbortController — запросы висят после уничтожения компонента.</div></div>`
+      }
+    ]
+  },
+  {
+    id: 6,
+    module: "Модуль 4",
+    title: "Modules, Errors & Production",
+    time: "55 мин",
+    difficulty: "Продакшн",
+    sections: [
+      {
+        type: "theory",
+        label: "Key Theory",
+        heading: "Код готовый к реальному проекту",
+        content: `<ul>
+          <li><strong>ES Modules:</strong> <code>import/export</code> — единственный способ. Named vs Default exports.</li>
+          <li><strong>Custom Errors:</strong> <code>class ApiError extends Error</code> — типизация ошибок.</li>
+          <li><strong>try/catch/finally:</strong> finally выполняется всегда — для очистки ресурсов.</li>
+          <li><strong>Optional chaining:</strong> <code>user?.address?.city</code> — вместо длинных проверок.</li>
+          <li><strong>Nullish coalescing:</strong> <code>value ?? 'default'</code> — только для null/undefined, в отличие от <code>||</code>.</li>
+        </ul>`
+      },
+      {
+        type: "deepdive",
+        label: "Technical Deep Dive",
+        heading: "Кастомные классы ошибок — как в продакшне",
+        content: `<pre><span class="kw">class</span> <span class="fn">ApiError</span> <span class="kw">extends</span> Error {
+  <span class="fn">constructor</span>(message, statusCode, code) {
+    <span class="kw">super</span>(message);
+    this.name = <span class="str">'ApiError'</span>;
+    this.statusCode = statusCode;
+    this.code = code;
+  }
+}
+
+<span class="kw">class</span> <span class="fn">NotFoundError</span> <span class="kw">extends</span> <span class="fn">ApiError</span> {
+  <span class="fn">constructor</span>(resource) {
+    <span class="kw">super</span>(\`\${resource} not found\`, <span class="num">404</span>, <span class="str">'NOT_FOUND'</span>);
+  }
+}
+
+<span class="cm">// Обработка по типу:</span>
+<span class="kw">try</span> { ... } <span class="kw">catch</span> (e) {
+  <span class="kw">if</span> (e <span class="kw">instanceof</span> <span class="fn">NotFoundError</span>) showEmpty();
+  <span class="kw">else</span> <span class="kw">throw</span> e; <span class="cm">// пробрасываем неизвестные</span>
+}</pre>`
+      },
+      {
+        type: "task",
+        label: "Real-world Task",
+        heading: "Тикет: Модуль корзины покупок",
+        content: `<p>Реализуй функцию <code>filterCart(items, maxPrice)</code>, которая фильтрует товары корзины, добавляет итоговую сумму и обрабатывает некорректные данные.</p>`,
+        hasSandbox: true,
+        sandboxId: 6
+      },
+      {
+        type: "checklist",
+        label: "Code Review Checklist",
+        heading: "Production-ready — финальный чеклист",
+        content: `
+          <div class="checklist-item"><div class="check-icon">!</div><div>Пустые catch блоки: <code>catch(e) {}</code> — ошибка молча игнорируется.</div></div>
+          <div class="checklist-item"><div class="check-icon">!</div><div>console.log в продакшн коде — только для дебага, убирай перед коммитом.</div></div>
+          <div class="checklist-item"><div class="check-icon">!</div><div>Нет разделения на модули — весь код в одном файле неприемлем в проекте.</div></div>
+          <div class="checklist-item"><div class="check-icon">!</div><div>Magic strings вместо констант: <code>'admin'</code> → <code>ROLES.ADMIN</code>.</div></div>`
+      }
+    ]
+  }
+];
+
+// =====================================================
+// SANDBOX TASKS
+// =====================================================
+const TASKS = [
+  {
+    id: 0,
+    title: "Функция форматирования цены",
+    description: `<strong>Тикет:</strong> Реализуй функцию <code>formatPrice(amount, currency)</code>.<br><br>
+    • <code>formatPrice(1500, 'RUB')</code> → <code>"1 500 ₽"</code><br>
+    • <code>formatPrice(1500, 'USD')</code> → <code>"$1,500"</code><br>
+    • <code>formatPrice(0, 'RUB')</code> → <code>"0 ₽"</code>`,
+    starter: `// Реализуй функцию formatPrice
+const formatPrice = (amount, currency) => {
+  // твой код здесь
+};
+
+// Тесты запустятся автоматически при проверке
+console.log(formatPrice(1500, 'RUB'));
+console.log(formatPrice(1500, 'USD'));`,
+    tests: [
+      { desc: "formatPrice(1500, 'RUB') === '1 500 ₽'", fn: (ctx) => ctx.formatPrice(1500, 'RUB') === '1\u00a0500\u00a0₽' || ctx.formatPrice(1500, 'RUB') === '1 500 ₽' },
+      { desc: "formatPrice(1500, 'USD') === '$1,500'", fn: (ctx) => ctx.formatPrice(1500, 'USD') === '$1,500' },
+      { desc: "formatPrice(0, 'RUB') === '0 ₽'", fn: (ctx) => ctx.formatPrice(0, 'RUB') === '0 ₽' },
+      { desc: "formatPrice(999, 'USD') === '$999'", fn: (ctx) => ctx.formatPrice(999, 'USD') === '$999' },
+    ]
+  },
+  {
+    id: 1,
+    title: "Нормализация ответа API",
+    description: `<strong>Тикет:</strong> Бекенд возвращает «грязные» данные. Напиши <code>normalizeUser(raw)</code>.<br><br>
+    Входные данные: <code>{ first_name, last_name, user_email, is_active }</code><br>
+    Ожидаемый выход: <code>{ fullName, email, isActive }</code>`,
+    starter: `const normalizeUser = (raw) => {
+  // используй деструктуризацию и переименование
+};
+
+const raw = {
+  first_name: 'John',
+  last_name: 'Doe',
+  user_email: 'john@example.com',
+  is_active: true,
+};
+
+console.log(normalizeUser(raw));`,
+    tests: [
+      { desc: "fullName = 'John Doe'", fn: (ctx) => ctx.normalizeUser({ first_name: 'John', last_name: 'Doe', user_email: 'j@t.com', is_active: true }).fullName === 'John Doe' },
+      { desc: "email корректно маппится", fn: (ctx) => ctx.normalizeUser({ first_name: 'A', last_name: 'B', user_email: 'test@mail.com', is_active: false }).email === 'test@mail.com' },
+      { desc: "isActive = true", fn: (ctx) => ctx.normalizeUser({ first_name: 'A', last_name: 'B', user_email: 'x@y.com', is_active: true }).isActive === true },
+      { desc: "нет лишних ключей (first_name, last_name)", fn: (ctx) => { const r = ctx.normalizeUser({ first_name: 'A', last_name: 'B', user_email: 'x@y.com', is_active: true }); return !('first_name' in r) && !('last_name' in r); } },
+    ]
+  },
+  {
+    id: 2,
+    title: "Фильтрация товаров корзины",
+    description: `<strong>Тикет:</strong> Реализуй <code>filterByCategory(items, category)</code>.<br><br>
+    Фильтрует массив товаров по полю <code>category</code>. Если category = <code>'all'</code> — возвращает все.`,
+    starter: `const filterByCategory = (items, category) => {
+  // твой код
+};
+
+const items = [
+  { id: 1, name: 'Laptop', category: 'electronics', price: 999 },
+  { id: 2, name: 'T-Shirt', category: 'clothes', price: 29 },
+  { id: 3, name: 'Phone', category: 'electronics', price: 599 },
+];
+
+console.log(filterByCategory(items, 'electronics'));
+console.log(filterByCategory(items, 'all'));`,
+    tests: [
+      { desc: "Фильтрует по category='electronics' (2 товара)", fn: (ctx) => ctx.filterByCategory([{category:'electronics'},{category:'clothes'},{category:'electronics'}], 'electronics').length === 2 },
+      { desc: "category='all' возвращает все товары", fn: (ctx) => ctx.filterByCategory([{category:'a'},{category:'b'}], 'all').length === 2 },
+      { desc: "Возвращает массив (не мутирует оригинал)", fn: (ctx) => Array.isArray(ctx.filterByCategory([], 'all')) },
+      { desc: "Несуществующая category → пустой массив", fn: (ctx) => ctx.filterByCategory([{category:'a'}], 'xyz').length === 0 },
+    ]
+  },
+  {
+    id: 3,
+    title: "Валидатор формы оплаты",
+    description: `<strong>Тикет:</strong> Реализуй <code>validatePayment({ card, expiry, cvv })</code>.<br><br>
+    Возвращает объект ошибок или <code>{}</code> если всё валидно.<br>
+    • card: 16 цифр<br>• expiry: формат MM/YY<br>• cvv: 3 цифры`,
+    starter: `const validatePayment = ({ card, expiry, cvv }) => {
+  const errors = {};
+  // проверь каждое поле
+  return errors;
+};
+
+console.log(validatePayment({ card: '1234567890123456', expiry: '12/26', cvv: '123' }));
+console.log(validatePayment({ card: '123', expiry: 'bad', cvv: '12' }));`,
+    tests: [
+      { desc: "Валидные данные → {} (нет ошибок)", fn: (ctx) => Object.keys(ctx.validatePayment({ card: '1234567890123456', expiry: '12/26', cvv: '123' })).length === 0 },
+      { desc: "Короткий card → errors.card существует", fn: (ctx) => !!ctx.validatePayment({ card: '123', expiry: '12/26', cvv: '123' }).card },
+      { desc: "Неверный expiry → errors.expiry существует", fn: (ctx) => !!ctx.validatePayment({ card: '1234567890123456', expiry: 'bad', cvv: '123' }).expiry },
+      { desc: "CVV не 3 цифры → errors.cvv существует", fn: (ctx) => !!ctx.validatePayment({ card: '1234567890123456', expiry: '12/26', cvv: '12' }).cvv },
+    ]
+  },
+  {
+    id: 4,
+    title: "Promise.all — параллельная загрузка",
+    description: `<strong>Тикет:</strong> Реализуй <code>loadAll(promises)</code>.<br><br>
+    Принимает массив промисов, возвращает промис с массивом результатов. При ошибке любого — отклоняет.`,
+    starter: `const loadAll = (promises) => {
+  // используй Promise.all
+};
+
+// Тест
+const p1 = Promise.resolve({ user: 'Alice' });
+const p2 = Promise.resolve({ orders: [1, 2, 3] });
+
+loadAll([p1, p2]).then(results => {
+  console.log(results);
+});`,
+    tests: [
+      { desc: "Возвращает Promise", fn: (ctx) => ctx.loadAll([Promise.resolve(1)]) instanceof Promise },
+      { desc: "Разрешается с массивом результатов", fn: async (ctx) => { const r = await ctx.loadAll([Promise.resolve(1), Promise.resolve(2)]); return Array.isArray(r) && r[0] === 1 && r[1] === 2; } },
+      { desc: "Пустой массив → []", fn: async (ctx) => { const r = await ctx.loadAll([]); return r.length === 0; } },
+      { desc: "При ошибке одного — отклоняет", fn: async (ctx) => { try { await ctx.loadAll([Promise.resolve(1), Promise.reject('err')]); return false; } catch(e) { return true; } } },
+    ]
+  },
+  {
+    id: 5,
+    title: "Async функция с обработкой ошибок",
+    description: `<strong>Тикет:</strong> Напиши <code>safeFetch(url)</code>.<br><br>
+    Симулирует fetch: если URL содержит 'error' — кидает ошибку.<br>
+    Иначе возвращает <code>{ data: 'ok', url }</code>.<br>
+    Функция должна обрабатывать ошибку и возвращать <code>{ error: message }</code>.`,
+    starter: `const safeFetch = async (url) => {
+  // симуляция запроса:
+  const mockFetch = (u) => u.includes('error') 
+    ? Promise.reject(new Error('Network error')) 
+    : Promise.resolve({ data: 'ok', url: u });
+  
+  // обработай ошибки через try/catch
+};
+
+safeFetch('/api/users').then(console.log);
+safeFetch('/api/error').then(console.log);`,
+    tests: [
+      { desc: "Возвращает Promise", fn: (ctx) => ctx.safeFetch('/test') instanceof Promise },
+      { desc: "Успешный URL → { data: 'ok', url }", fn: async (ctx) => { const r = await ctx.safeFetch('/api/users'); return r.data === 'ok'; } },
+      { desc: "URL с 'error' → возвращает { error: ... }", fn: async (ctx) => { const r = await ctx.safeFetch('/api/error'); return 'error' in r; } },
+      { desc: "Не бросает необработанный reject", fn: async (ctx) => { try { await ctx.safeFetch('/error'); return true; } catch(e) { return false; } } },
+    ]
+  },
+  {
+    id: 6,
+    title: "Фильтрация корзины с итогом",
+    description: `<strong>Тикет:</strong> Реализуй <code>filterCart(items, maxPrice)</code>.<br><br>
+    Фильтрует товары дешевле maxPrice и возвращает <code>{ items, total }</code>.<br>
+    Если items не массив — бросает Error('Invalid input').`,
+    starter: `const filterCart = (items, maxPrice) => {
+  // валидация, фильтрация, подсчёт total
+};
+
+const cart = [
+  { name: 'Book', price: 15 },
+  { name: 'Laptop', price: 999 },
+  { name: 'Pen', price: 3 },
+];
+
+console.log(filterCart(cart, 100));`,
+    tests: [
+      { desc: "Фильтрует товары выше maxPrice", fn: (ctx) => ctx.filterCart([{price:10},{price:100},{price:5}], 50).items.length === 2 },
+      { desc: "total = сумма отфильтрованных цен", fn: (ctx) => ctx.filterCart([{price:10},{price:5}], 50).total === 15 },
+      { desc: "Возвращает объект { items, total }", fn: (ctx) => { const r = ctx.filterCart([], 100); return 'items' in r && 'total' in r; } },
+      { desc: "Бросает ошибку если items не массив", fn: (ctx) => { try { ctx.filterCart(null, 100); return false; } catch(e) { return true; } } },
+    ]
+  }
+];
+
+// =====================================================
+// STATE
+// =====================================================
+let currentLesson = 0;
+let doneLessons = new Set();
+let currentTask = null;
+
+// =====================================================
+// RENDER LESSON
+// =====================================================
+function renderLesson(id) {
+  currentLesson = id;
+  const lesson = LESSONS[id];
+  const view = document.getElementById('lesson-view');
+
+  let html = `
+    <div class="lesson-eyebrow">${lesson.module}</div>
+    <h1 class="lesson-title">${lesson.title}</h1>
+    <div class="lesson-meta">
+      <span>⏱ ${lesson.time}</span>
+      <span>◈ ${lesson.difficulty}</span>
+    </div>`;
+
+  lesson.sections.forEach(sec => {
+    html += `<div class="section ${sec.type}">
+      <div class="section-label">${sec.label}</div>
+      <h3>${sec.heading}</h3>
+      <div>${sec.content}</div>
+      ${sec.hasSandbox ? `<button class="btn-primary" onclick="openSandbox(${sec.sandboxId})">▶ Открыть песочницу →</button>` : ''}
+    </div>`;
+  });
+
+  view.innerHTML = html;
+  view.scrollTop = 0;
+
+  // Update sidebar
+  document.querySelectorAll('.lesson-item').forEach(el => {
+    el.classList.remove('active');
+    if (parseInt(el.dataset.lesson) === id) el.classList.add('active');
+  });
+
+  // Update tabs
+  renderTabs(id);
+}
+
+function renderTabs(activeId) {
+  const tabs = document.getElementById('nav-tabs');
+  tabs.innerHTML = LESSONS.map(l => `
+    <div class="nav-tab ${l.id === activeId ? 'active' : ''}" onclick="renderLesson(${l.id})">
+      <span class="tab-num">${l.module.split(' ')[1]}.${l.id % 2 + 1}</span>
+      ${l.title.split(' ')[0]}
+    </div>`).join('');
+}
+
+// =====================================================
+// SANDBOX
+// =====================================================
+function openSandbox(taskId) {
+  currentTask = TASKS[taskId];
+  document.getElementById('sandbox-title').textContent = currentTask.title;
+  document.getElementById('task-desc').innerHTML = currentTask.description;
+  document.getElementById('code-editor').value = currentTask.starter;
+  document.getElementById('console-area').innerHTML = '<div class="console-empty">// Нажми ▶ Run для запуска кода...</div>';
+  renderTestsPending();
+  document.getElementById('success-banner').classList.remove('show');
+  document.getElementById('sandbox-overlay').classList.add('open');
+  updateLineNumbers();
+}
+
+function closeSandbox() {
+  document.getElementById('sandbox-overlay').classList.remove('open');
+}
+
+function renderTestsPending() {
+  const list = document.getElementById('tests-list');
+  list.innerHTML = currentTask.tests.map((t, i) =>
+    `<div class="test-row pending" id="test-${i}">
+      <span class="test-icon">○</span>
+      <span>${t.desc}</span>
+    </div>`
+  ).join('');
+}
+
+// =====================================================
+// CODE EXECUTION
+// =====================================================
+function interceptConsole(outputArr) {
+  const orig = console.log;
+  console.log = (...args) => {
+    outputArr.push(args.map(a => typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a)).join(' '));
+    orig(...args);
+  };
+  return () => { console.log = orig; };
+}
+
+function executeCode(code) {
+  const output = [];
+  const restore = interceptConsole(output);
+  let ctx = {};
+  let error = null;
+
+  try {
+    const fn = new Function(code + '\nreturn {' + 
+      ['formatPrice','normalizeUser','filterByCategory','validatePayment',
+       'loadAll','safeFetch','filterCart']
+        .map(n => `${n}: typeof ${n} !== 'undefined' ? ${n} : undefined`)
+        .join(',') + '};');
+    ctx = fn();
+  } catch(e) {
+    error = e;
+  } finally {
+    restore();
+  }
+
+  return { output, ctx, error };
+}
+
+async function runCode() {
+  const code = document.getElementById('code-editor').value;
+  const consoleArea = document.getElementById('console-area');
+  const { output, error } = executeCode(code);
+
+  let html = '';
+  if (output.length === 0 && !error) {
+    html = '<div class="console-empty">// Нет вывода. Добавь console.log()</div>';
+  }
+  output.forEach(line => {
+    html += `<div class="console-line log"><span class="console-prefix">›</span><span>${escapeHtml(line)}</span></div>`;
+  });
+  if (error) {
+    html += `<div class="console-line error"><span class="console-prefix">✕</span><span>${escapeHtml(error.message)}</span></div>`;
+  }
+  consoleArea.innerHTML = html;
+}
+
+async function checkSolution() {
+  const code = document.getElementById('code-editor').value;
+  const { ctx, error, output } = executeCode(code);
+
+  const consoleArea = document.getElementById('console-area');
+  let consoleHtml = '';
+  output.forEach(line => {
+    consoleHtml += `<div class="console-line log"><span class="console-prefix">›</span><span>${escapeHtml(line)}</span></div>`;
+  });
+  if (error) {
+    consoleHtml += `<div class="console-line error"><span class="console-prefix">✕</span><span>${escapeHtml(error.message)}</span></div>`;
+  }
+  consoleArea.innerHTML = consoleHtml || '<div class="console-empty">// Запускаем тесты...</div>';
+
+  if (error) {
+    notify('Синтаксическая ошибка: ' + error.message, 'err');
+    return;
+  }
+
+  const results = [];
+  for (let i = 0; i < currentTask.tests.length; i++) {
+    const test = currentTask.tests[i];
+    try {
+      const pass = await Promise.resolve(test.fn(ctx));
+      results.push(pass);
+    } catch(e) {
+      results.push(false);
+    }
+  }
+
+  const list = document.getElementById('tests-list');
+  results.forEach((pass, i) => {
+    const el = document.getElementById(`test-${i}`);
+    el.className = `test-row ${pass ? 'pass' : 'fail'}`;
+    el.querySelector('.test-icon').textContent = pass ? '✓' : '✕';
+  });
+
+  const allPassed = results.every(Boolean);
+  if (allPassed) {
+    showSuccess();
+    doneLessons.add(currentLesson);
+    updateProgress();
+    document.querySelectorAll('.lesson-item').forEach(el => {
+      if (parseInt(el.dataset.lesson) === currentLesson) el.classList.add('done');
+    });
+  } else {
+    const failed = results.filter(r => !r).length;
+    notify(`${failed} из ${results.length} тестов не прошли`, 'err');
+  }
+}
+
+function showSuccess() {
+  const banner = document.getElementById('success-banner');
+  banner.classList.add('show');
+  spawnConfetti();
+  const sub = document.getElementById('success-sub');
+  const msgs = ['Чистый код. Так держать!', 'Готово к code review!', 'Junior уровень разблокирован 🎯', 'Продакшн-качество!'];
+  sub.textContent = msgs[Math.floor(Math.random() * msgs.length)];
+}
+
+function spawnConfetti() {
+  const container = document.getElementById('confetti-container');
+  container.innerHTML = '';
+  const colors = ['#00e5a0', '#7c3aed', '#f59e0b', '#60a5fa', '#f472b6'];
+  for (let i = 0; i < 60; i++) {
+    const c = document.createElement('div');
+    c.className = 'confetto';
+    c.style.cssText = `
+      left: ${Math.random() * 100}%;
+      background: ${colors[Math.floor(Math.random() * colors.length)]};
+      animation-delay: ${Math.random() * 0.8}s;
+      animation-duration: ${1.5 + Math.random() * 1.5}s;
+      width: ${4 + Math.random() * 8}px;
+      height: ${4 + Math.random() * 8}px;
+    `;
+    container.appendChild(c);
+  }
+}
+
+function updateProgress() {
+  const total = 7;
+  const done = doneLessons.size;
+  document.getElementById('progress-label').textContent = `${done} / ${total} модулей`;
+  document.getElementById('progress-fill').style.width = `${(done / total) * 100}%`;
+}
+
+// =====================================================
+// HELPERS
+// =====================================================
+function updateLineNumbers() {
+  const editor = document.getElementById('code-editor');
+  const lines = editor.value.split('\n').length;
+  document.getElementById('line-numbers').textContent = 
+    Array.from({length: lines}, (_, i) => i + 1).join('\n');
+}
+
+function escapeHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+let notifTimer;
+function notify(msg, type = 'ok') {
+  const el = document.getElementById('notification');
+  el.textContent = type === 'ok' ? '✓ ' + msg : '✕ ' + msg;
+  el.className = `notification show ${type}`;
+  clearTimeout(notifTimer);
+  notifTimer = setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+// =====================================================
+// EVENT LISTENERS
+// =====================================================
+document.getElementById('btn-run').addEventListener('click', runCode);
+document.getElementById('btn-check').addEventListener('click', checkSolution);
+document.getElementById('btn-close').addEventListener('click', closeSandbox);
+
+document.getElementById('btn-reset').addEventListener('click', () => {
+  document.getElementById('code-editor').value = currentTask.starter;
+  document.getElementById('console-area').innerHTML = '<div class="console-empty">// Код сброшен.</div>';
+  renderTestsPending();
+  document.getElementById('success-banner').classList.remove('show');
+  updateLineNumbers();
+});
+
+document.getElementById('btn-next-task').addEventListener('click', () => {
+  closeSandbox();
+  const next = Math.min(currentLesson + 1, LESSONS.length - 1);
+  renderLesson(next);
+});
+
+document.getElementById('sandbox-overlay').addEventListener('click', (e) => {
+  if (e.target === document.getElementById('sandbox-overlay')) closeSandbox();
+});
+
+document.querySelectorAll('.lesson-item').forEach(el => {
+  el.addEventListener('click', () => renderLesson(parseInt(el.dataset.lesson)));
+});
+
+const editor = document.getElementById('code-editor');
+editor.addEventListener('input', updateLineNumbers);
+editor.addEventListener('scroll', () => {
+  document.getElementById('line-numbers').scrollTop = editor.scrollTop;
+});
+
+editor.addEventListener('keydown', (e) => {
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    const s = editor.selectionStart;
+    editor.value = editor.value.substring(0, s) + '  ' + editor.value.substring(editor.selectionEnd);
+    editor.selectionStart = editor.selectionEnd = s + 2;
+    updateLineNumbers();
+  }
+});
+
+// =====================================================
+// INIT
+// =====================================================
+renderLesson(0);
+</script>
+</body>
+</html>
